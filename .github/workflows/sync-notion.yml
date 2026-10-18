@@ -5,7 +5,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: notion-chapter-publishing
+  cancel-in-progress: false
 
 jobs:
   sync:
@@ -14,6 +18,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -37,14 +43,88 @@ jobs:
 
           echo "Notion configuration is present."
 
-      - name: Test Notion chapter sync
+      - name: Generate chapters from Notion
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
-          SYNC_WRITE: 'false'
+          SYNC_WRITE: 'true'
         run: node scripts/sync-notion.mjs
 
-      - name: Confirm dry run
+      - name: Validate generated chapters
         run: |
-          echo "Dry run completed."
-          echo "No website chapter data was published."
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+
+          const chapters = JSON.parse(
+            fs.readFileSync('data/chapters.json', 'utf8')
+          );
+
+          if (!Array.isArray(chapters)) {
+            throw new Error('Chapter data must be an array.');
+          }
+
+          if (chapters.length !== 33) {
+            throw new Error(
+              `Expected 33 chapters, got ${chapters.length}.`
+            );
+          }
+
+          const ids = new Set();
+          const orders = new Set();
+
+          for (const chapter of chapters) {
+            if (
+              chapter.published !== true ||
+              chapter.status !== '已發布'
+            ) {
+              throw new Error('Unapproved chapter detected.');
+            }
+
+            if (
+              !chapter.id ||
+              !chapter.title?.trim() ||
+              !chapter.content?.trim()
+            ) {
+              throw new Error('Incomplete chapter detected.');
+            }
+
+            if (
+              !Number.isFinite(chapter.order) ||
+              !Array.isArray(chapter.cp) ||
+              !['一般', '18+'].includes(chapter.rating)
+            ) {
+              throw new Error('Invalid chapter metadata.');
+            }
+
+            if (ids.has(chapter.id)) {
+              throw new Error('Duplicate chapter ID.');
+            }
+
+            if (orders.has(chapter.order)) {
+              throw new Error('Duplicate chapter order.');
+            }
+
+            ids.add(chapter.id);
+            orders.add(chapter.order);
+          }
+
+          console.log(
+            `Validated ${chapters.length} chapters.`
+          );
+          NODE
+
+      - name: Commit published chapters
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add data/chapters.json
+
+          if git diff --cached --quiet; then
+            echo "No chapter changes to publish."
+            exit 0
+          fi
+
+          git commit -m "Publish Notion chapters"
+          git push origin HEAD:main
