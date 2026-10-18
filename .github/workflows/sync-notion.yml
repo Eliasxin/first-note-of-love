@@ -23,7 +23,7 @@ jobs:
       - name: Check Notion configuration
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-          NOTION_DATABASE_ID: ${{ vars.NOTION_DATABASE_ID }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
         run: |
           if [ -z "$NOTION_TOKEN" ]; then
             echo "::error::Missing NOTION_TOKEN secret"
@@ -31,7 +31,7 @@ jobs:
           fi
 
           if [ -z "$NOTION_DATABASE_ID" ]; then
-            echo "::error::Missing NOTION_DATABASE_ID variable"
+            echo "::error::Missing NOTION_DATABASE_ID secret"
             exit 1
           fi
 
