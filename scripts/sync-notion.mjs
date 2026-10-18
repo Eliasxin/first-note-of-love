@@ -5,13 +5,18 @@ import fs from 'node:fs/promises';
 
 const TOKEN = process.env.NOTION_TOKEN;
 const DATABASE_ID = process.env.NOTION_DATABASE_ID;
+
+// 《戀習曲》作品資料頁面的 ID
+const WORK_ID = '3fc9214c53e38011964bd9b56a6b1226';
+
 const API_VERSION = '2022-06-28';
+const BASE_URL = 'https://api.notion.com/v1';
 
 if (!TOKEN || !DATABASE_ID) {
-  throw new Error('Missing NOTION_TOKEN or NOTION_DATABASE_ID');
+  throw new Error(
+    'Missing NOTION_TOKEN or NOTION_DATABASE_ID'
+  );
 }
-
-const BASE_URL = 'https://api.notion.com/v1';
 
 async function notion(path, method = 'GET', body) {
   const response = await fetch(BASE_URL + path, {
@@ -21,48 +26,58 @@ async function notion(path, method = 'GET', body) {
       'Notion-Version': API_VERSION,
       'Content-Type': 'application/json'
     },
-    ...(body ? { body: JSON.stringify(body) } : {})
+    ...(body !== undefined
+      ? { body: JSON.stringify(body) }
+      : {})
   });
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`Notion API ${response.status}: ${detail}`);
+    throw new Error(
+      `Notion API ${response.status}: ${detail}`
+    );
   }
 
   return response.json();
 }
 
 function plainText(items = []) {
-  return items.map(item => item.plain_text ?? item.text?.content ?? '').join('');
+  return items
+    .map(item =>
+      item.plain_text ??
+      item.text?.content ??
+      ''
+    )
+    .join('');
 }
 
 function propertyText(property) {
   if (!property) return '';
 
-  if (property.type === 'title') {
-    return plainText(property.title);
-  }
+  switch (property.type) {
+    case 'title':
+      return plainText(property.title ?? []);
 
-  if (property.type === 'rich_text') {
-    return plainText(property.rich_text);
-  }
+    case 'rich_text':
+      return plainText(property.rich_text ?? []);
 
-  if (property.type === 'select') {
-    return property.select?.name ?? '';
-  }
+    case 'select':
+      return property.select?.name ?? '';
 
-  if (property.type === 'status') {
-    return property.status?.name ?? '';
-  }
+    case 'status':
+      return property.status?.name ?? '';
 
-  return '';
+    default:
+      return '';
+  }
 }
 
 function propertyValues(property) {
   if (!property) return [];
 
   if (property.type === 'multi_select') {
-    return (property.multi_select ?? []).map(item => item.name);
+    return (property.multi_select ?? [])
+      .map(item => item.name);
   }
 
   const text = propertyText(property);
@@ -71,32 +86,45 @@ function propertyValues(property) {
 
 async function queryDatabase() {
   const pages = [];
-  let cursor;
+  let cursor = null;
 
   do {
+    const body = {
+      page_size: 100,
+      filter: {
+        and: [
+          {
+            property: '發布狀態',
+            select: {
+              equals: '已發佈'
+            }
+          },
+          {
+            property: '網站公開',
+            checkbox: {
+              equals: true
+            }
+          }
+        ]
+      }
+    };
+
+    if (cursor) {
+      body.start_cursor = cursor;
+    }
+
     const data = await notion(
       `/databases/${DATABASE_ID}/query`,
       'POST',
-      {
-        page_size: 100,
-        filter: {
-          and: [
-            {
-              property: '發布狀態',
-              select: { equals: '已發布' }
-            },
-            {
-              property: '網站公開',
-              checkbox: { equals: true }
-            }
-          ]
-        },
-        ...(cursor ? { start_cursor: cursor } : {})
-      }
+      body
     );
 
     pages.push(...data.results);
-    cursor = data.has_more ? data.next_cursor : null;
+
+    cursor = data.has_more
+      ? data.next_cursor
+      : null;
+
   } while (cursor);
 
   return pages;
@@ -104,18 +132,27 @@ async function queryDatabase() {
 
 async function getBlocks(blockId) {
   const blocks = [];
-  let cursor;
+  let cursor = null;
 
   do {
-    const params = new URLSearchParams({ page_size: '100' });
-    if (cursor) params.set('start_cursor', cursor);
+    const params = new URLSearchParams({
+      page_size: '100'
+    });
+
+    if (cursor) {
+      params.set('start_cursor', cursor);
+    }
 
     const data = await notion(
       `/blocks/${blockId}/children?${params}`
     );
 
     blocks.push(...data.results);
-    cursor = data.has_more ? data.next_cursor : null;
+
+    cursor = data.has_more
+      ? data.next_cursor
+      : null;
+
   } while (cursor);
 
   return blocks;
@@ -124,6 +161,7 @@ async function getBlocks(blockId) {
 async function readBlock(block, depth = 0) {
   const type = block.type;
   const data = block[type] ?? {};
+
   const text = plainText(data.rich_text ?? []);
   const indent = '  '.repeat(depth);
 
@@ -133,34 +171,44 @@ async function readBlock(block, depth = 0) {
     case 'paragraph':
       output = text;
       break;
+
     case 'heading_1':
     case 'heading_2':
     case 'heading_3':
       output = text;
       break;
+
     case 'bulleted_list_item':
       output = `${indent}• ${text}`;
       break;
+
     case 'numbered_list_item':
       output = `${indent}1. ${text}`;
       break;
+
     case 'quote':
       output = `「${text}」`;
       break;
+
     case 'to_do':
-      output = `${data.checked ? '☑' : '☐'} ${text}`;
+      output =
+        `${data.checked ? '☑' : '☐'} ${text}`;
       break;
+
     case 'code':
       output = text;
       break;
+
     case 'divider':
       output = '────────';
       break;
+
     case 'image':
       output = data.caption?.length
         ? `[圖片：${plainText(data.caption)}]`
         : '[圖片]';
       break;
+
     default:
       output = text;
   }
@@ -170,12 +218,21 @@ async function readBlock(block, depth = 0) {
     const nested = [];
 
     for (const child of children) {
-      const childText = await readBlock(child, depth + 1);
-      if (childText) nested.push(childText);
+      const childText = await readBlock(
+        child,
+        depth + 1
+      );
+
+      if (childText) {
+        nested.push(childText);
+      }
     }
 
     if (nested.length) {
-      output = [output, ...nested].filter(Boolean).join('\n');
+      output = [
+        output,
+        ...nested
+      ].filter(Boolean).join('\n');
     }
   }
 
@@ -188,71 +245,115 @@ async function readPageContent(pageId) {
 
   for (const block of blocks) {
     const text = await readBlock(block);
-    if (text) paragraphs.push(text);
+
+    if (text) {
+      paragraphs.push(text);
+    }
   }
 
   return paragraphs.join('\n\n').trim();
 }
 
-function isLoveStory(page) {
-  const property = page.properties['所屬作品'];
+function belongsToLoveStory(page) {
+  const property =
+    page.properties['所屬作品'];
 
-  if (!property) return false;
-
-  const names = propertyValues(property);
-
-  if (names.some(name => name.includes('戀習曲'))) {
-    return true;
+  if (!property) {
+    throw new Error(
+      `Missing 所屬作品: ${page.id}`
+    );
   }
 
-  if (property.type === 'relation') {
-    return null;
+  if (property.type !== 'relation') {
+    throw new Error(
+      `Unexpected 所屬作品 type: ${property.type}`
+    );
   }
 
-  return false;
+  if (property.has_more === true) {
+    throw new Error(
+      `Incomplete relation data: ${page.id}`
+    );
+  }
+
+  return (property.relation ?? []).some(
+    item =>
+      item.id.replace(/-/g, '').toLowerCase() ===
+      WORK_ID
+  );
 }
 
 function getCP(page) {
-  return propertyValues(page.properties['CP / 配對']);
+  return propertyValues(
+    page.properties['CP / 配對']
+  );
 }
 
 function getRating(page) {
-  const value = propertyText(page.properties['閱讀分級']);
-  return value === '18+' ? '18+' : '一般';
+  const value = propertyText(
+    page.properties['閱讀分級']
+  );
+
+  if (value !== '一般' && value !== '18+') {
+    throw new Error(
+      `Unknown reading rating for ${page.id}: ${value}`
+    );
+  }
+
+  return value;
 }
 
 async function main() {
-  console.log('Starting Notion sync validation...');
+  console.log(
+    'Starting Notion sync validation...'
+  );
 
   const pages = await queryDatabase();
+
+  console.log(
+    `Published and public candidates: ${pages.length}`
+  );
+
   const chapters = [];
-  let unresolvedRelations = 0;
 
   for (const page of pages) {
-    const belongs = isLoveStory(page);
-
-    if (belongs === null) {
-      unresolvedRelations++;
+    if (!belongsToLoveStory(page)) {
       continue;
     }
-
-    if (!belongs) continue;
 
     const properties = page.properties;
 
-    const status = propertyText(properties['發布狀態']);
+    // Notion 使用「已發佈」
+    const status = propertyText(
+      properties['發布狀態']
+    );
+
     const published =
       properties['網站公開']?.checkbox === true;
 
-    if (status !== '已發布' || !published) {
+    if (status !== '已發佈' || !published) {
       continue;
     }
 
-    const title = propertyText(properties['文章名稱']);
-    const order = properties['章節順序']?.number;
-    const content = await readPageContent(page.id);
+    const title = propertyText(
+      properties['文章名稱']
+    );
 
-    if (!title || !content || !Number.isFinite(order)) {
+    const order =
+      properties['章節順序']?.number;
+
+    const cp = getCP(page);
+    const rating = getRating(page);
+
+    const content = await readPageContent(
+      page.id
+    );
+
+    if (
+      !title ||
+      !content ||
+      !Number.isFinite(order)
+    ) {
       throw new Error(
         `Incomplete chapter: ${page.id}`
       );
@@ -263,26 +364,27 @@ async function main() {
       order,
       title,
       content,
-      cp: getCP(page),
-      rating: getRating(page),
+      cp,
+      rating,
+
+      // 網站 app.js 使用「已發布」
       status: '已發布',
       published: true
     });
   }
 
-  if (unresolvedRelations > 0) {
-    throw new Error(
-      `Found ${unresolvedRelations} pages with unresolved 所屬作品 relations. ` +
-      'No output was written. Relation IDs must be verified first.'
-    );
-  }
+  chapters.sort(
+    (a, b) => a.order - b.order
+  );
 
-  chapters.sort((a, b) => a.order - b.order);
-
-  console.log(`Validated chapters: ${chapters.length}`);
+  console.log(
+    `Validated Love Story chapters: ${chapters.length}`
+  );
 
   if (process.env.SYNC_WRITE !== 'true') {
-    console.log('DRY RUN: no files changed.');
+    console.log(
+      'DRY RUN: no files changed.'
+    );
     return;
   }
 
@@ -292,14 +394,19 @@ async function main() {
     );
   }
 
-  await fs.mkdir('data', { recursive: true });
+  await fs.mkdir('data', {
+    recursive: true
+  });
+
   await fs.writeFile(
     'data/chapters.json',
     JSON.stringify(chapters, null, 2) + '\n',
     'utf8'
   );
 
-  console.log('Updated data/chapters.json');
+  console.log(
+    'Updated data/chapters.json'
+  );
 }
 
 main().catch(error => {
