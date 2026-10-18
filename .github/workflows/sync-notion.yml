@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Check Notion configuration
+      - name: Validate Notion configuration
         env:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
@@ -36,4 +36,15 @@ jobs:
           fi
 
           echo "Notion configuration is present."
-          echo "No chapters have been published."
+
+      - name: Test Notion chapter sync
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          SYNC_WRITE: 'false'
+        run: node scripts/sync-notion.mjs
+
+      - name: Confirm dry run
+        run: |
+          echo "Dry run completed."
+          echo "No website chapter data was published."
