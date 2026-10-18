@@ -1,0 +1,39 @@
+
+name: Sync Notion Chapters
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check Notion configuration
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ vars.NOTION_DATABASE_ID }}
+        run: |
+          if [ -z "$NOTION_TOKEN" ]; then
+            echo "::error::Missing NOTION_TOKEN secret"
+            exit 1
+          fi
+
+          if [ -z "$NOTION_DATABASE_ID" ]; then
+            echo "::error::Missing NOTION_DATABASE_ID variable"
+            exit 1
+          fi
+
+          echo "Notion configuration is present."
+          echo "No chapters have been published."
