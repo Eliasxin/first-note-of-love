@@ -15,8 +15,8 @@ let pendingChapter = null;
 let currentChapter = null;
 let selectedSong = 0;
 
-// 官方原聲帶：每首歌曲獨立管理
-// 尚未確認的影片 ID 保持 null，避免播放錯誤影片。
+// OFFICIAL SOUNDTRACK
+// Each song uses its own YouTube video, not a playlist.
 const soundtrack = [
   {
     title: '我愛，我在',
@@ -26,37 +26,37 @@ const soundtrack = [
   {
     title: 'Sleepless Night',
     artist: '李佳歡 Kaia Lee',
-    videoId: null
+    videoId: 'w6j_U-ebSdE'
   },
   {
     title: 'Shatter Of The Sun',
     artist: 'Release',
-    videoId: null
+    videoId: 'q8RhdhSEZeg'
   },
   {
     title: "Ain't Gonna Stop",
     artist: 'Release',
-    videoId: null
+    videoId: 'oDEWrS8kEzE'
   },
   {
     title: 'Heal Your Broken Heart',
     artist: '吳思賢',
-    videoId: null
+    videoId: 'Ka1FvoxIIJs'
   },
   {
     title: 'Until The Sunrise',
     artist: 'PATRICKANANDA',
-    videoId: null
+    videoId: '2WSN6fp24WU'
   },
   {
     title: 'Not Afraid',
     artist: 'TAIYO',
-    videoId: null
+    videoId: 'CxuMhNROmqU'
   },
   {
     title: 'Neil',
     artist: 'MAX',
-    videoId: null
+    videoId: 'A4TjT02wZAE'
   }
 ];
 
@@ -67,7 +67,7 @@ function el(tag, cls, value) {
   return node;
 }
 
-// ===== 文章資料 =====
+// CHAPTER DATA
 
 function normalize(item) {
   if (!item || typeof item !== 'object') return null;
@@ -189,6 +189,7 @@ function render() {
     const button = el('button', 'play-track', '▶');
 
     button.type = 'button';
+
     button.setAttribute(
       'aria-label',
       `閱讀 ${chapter.title}`
@@ -204,7 +205,7 @@ function render() {
   });
 }
 
-// ===== 閱讀功能 =====
+// READER AND AGE CONFIRMATION
 
 function requestRead(chapter) {
   if (
@@ -248,37 +249,33 @@ function showReader(chapter) {
   const index = chapters.indexOf(chapter);
 
   $('#prevTrack').disabled = index <= 0;
+
   $('#nextTrack').disabled =
     index >= chapters.length - 1;
 
-  if (!reader.open) reader.showModal();
+  if (!reader.open) {
+    reader.showModal();
+  }
 
   $('.reader-shell').scrollTop = 0;
 }
 
 function goRelative(step) {
-  const target =
-    chapters[chapters.indexOf(currentChapter) + step];
+  const index = chapters.indexOf(currentChapter);
+  const target = chapters[index + step];
 
-  if (target) {
-    reader.close();
-    requestRead(target);
-  }
+  if (!target) return;
+
+  reader.close();
+  requestRead(target);
 }
 
-// ===== 官方原聲帶 =====
+// SOUNDTRACK PLAYER
 
-function youtubeSearchUrl(song) {
-  const query = [
-    '彈一場完美戀愛',
-    song.title,
-    song.artist,
-    'OST'
-  ].join(' ');
-
+function youtubeUrl(song) {
   return (
-    'https://www.youtube.com/results?search_query=' +
-    encodeURIComponent(query)
+    'https://www.youtube.com/watch?v=' +
+    encodeURIComponent(song.videoId)
   );
 }
 
@@ -287,6 +284,8 @@ function stopMusic() {
 }
 
 function playSong(index) {
+  if (index < 0 || index >= soundtrack.length) return;
+
   selectedSong = index;
   stopMusic();
 
@@ -298,52 +297,43 @@ function playSong(index) {
     `♪ ${song.title} — ${song.artist}`
   );
 
-  videoWrap.append(heading);
+  const iframe = document.createElement('iframe');
 
-  if (song.videoId) {
-    const iframe = document.createElement('iframe');
+  iframe.src =
+    'https://www.youtube-nocookie.com/embed/' +
+    encodeURIComponent(song.videoId) +
+    '?rel=0&playsinline=1';
 
-    iframe.src =
-      'https://www.youtube-nocookie.com/embed/' +
-      encodeURIComponent(song.videoId) +
-      '?rel=0';
+  iframe.title =
+    `${song.title} — ${song.artist}`;
 
-    iframe.title =
-      `${song.title} — ${song.artist}`;
+  iframe.allow =
+    'accelerometer; autoplay; clipboard-write; ' +
+    'encrypted-media; gyroscope; picture-in-picture; ' +
+    'web-share';
 
-    iframe.allow =
-      'accelerometer; autoplay; clipboard-write; ' +
-      'encrypted-media; gyroscope; picture-in-picture; ' +
-      'web-share';
+  iframe.allowFullscreen = true;
 
-    iframe.allowFullscreen = true;
+  iframe.referrerPolicy =
+    'strict-origin-when-cross-origin';
 
-    iframe.referrerPolicy =
-      'strict-origin-when-cross-origin';
+  iframe.loading = 'eager';
 
-    iframe.loading = 'lazy';
+  const externalLink = el(
+    'a',
+    'ost-external',
+    '在 YouTube 開啟這首歌 ↗'
+  );
 
-    videoWrap.append(iframe);
-  } else {
-    const message = el(
-      'p',
-      'ost-pending',
-      '此曲目的獨立影片網址尚待確認，' +
-      '可先前往 YouTube 尋找歌曲。'
-    );
+  externalLink.href = youtubeUrl(song);
+  externalLink.target = '_blank';
+  externalLink.rel = 'noopener noreferrer';
 
-    const link = el(
-      'a',
-      'ost-external',
-      '在 YouTube 尋找這首歌 ↗'
-    );
-
-    link.href = youtubeSearchUrl(song);
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-
-    videoWrap.append(message, link);
-  }
+  videoWrap.append(
+    heading,
+    iframe,
+    externalLink
+  );
 
   renderSoundtrack();
 }
@@ -364,20 +354,22 @@ function renderSoundtrack() {
   container.replaceChildren();
 
   soundtrack.forEach((song, index) => {
-    const button = el(
-      'button',
-      'ost-song',
-    );
+    const button = el('button', 'ost-song');
 
     button.type = 'button';
 
-    if (index === selectedSong) {
-      button.classList.add('selected');
-    }
+    const active = index === selectedSong;
+
+    button.classList.toggle('selected', active);
 
     button.setAttribute(
       'aria-pressed',
-      String(index === selectedSong)
+      String(active)
+    );
+
+    button.setAttribute(
+      'aria-label',
+      `選擇歌曲 ${song.title}`
     );
 
     const number = el(
@@ -396,7 +388,7 @@ function renderSoundtrack() {
     const symbol = el(
       'span',
       'ost-symbol',
-      song.videoId ? '▶' : '↗'
+      active ? '♫' : '▶'
     );
 
     button.append(number, details, symbol);
@@ -410,22 +402,28 @@ function renderSoundtrack() {
 }
 
 function openMusic() {
-  playSong(selectedSong);
-
   if (!musicDialog.open) {
     musicDialog.showModal();
   }
+
+  playSong(selectedSong);
 }
 
 function closeMusic() {
-  musicDialog.close();
+  if (musicDialog.open) {
+    musicDialog.close();
+  }
+
   stopMusic();
 }
+
+// SOUNDTRACK STYLES
 
 function addSoundtrackStyles() {
   if ($('#ostDynamicStyles')) return;
 
   const style = document.createElement('style');
+
   style.id = 'ostDynamicStyles';
 
   style.textContent = `
@@ -456,7 +454,13 @@ function addSoundtrackStyles() {
       text-align: left;
       cursor: pointer;
       font: inherit;
-      transition: background .2s, border-color .2s;
+      transition:
+        background .2s,
+        border-color .2s;
+    }
+
+    .ost-song:hover {
+      background: #e7f6fc;
     }
 
     .ost-song.selected {
@@ -504,22 +508,15 @@ function addSoundtrackStyles() {
       color: white;
     }
 
-    .ost-pending {
-      padding: 15px;
-      background: #f4fbfe;
-      border-radius: 12px;
-      color: #587c8c;
-      line-height: 1.7;
-    }
-
     .ost-external {
       display: inline-block;
-      margin: 12px 0;
-      padding: 12px 18px;
+      margin: 14px 0;
+      padding: 11px 17px;
       border-radius: 999px;
       background: #78c4e2;
       color: #fff;
       text-decoration: none;
+      font-size: .9rem;
       font-weight: 700;
     }
   `;
@@ -527,11 +524,9 @@ function addSoundtrackStyles() {
   document.head.append(style);
 }
 
-// ===== 事件綁定 =====
+// FILTER EVENTS
 
-for (
-  const button of document.querySelectorAll('.chip')
-) {
+for (const button of document.querySelectorAll('.chip')) {
   button.addEventListener('click', () => {
     filter = button.dataset.filter;
 
@@ -550,15 +545,15 @@ for (
   });
 }
 
+// MUSIC EVENTS
+
 $('#openMusic').addEventListener('click', openMusic);
 $('#heroMusic').addEventListener('click', openMusic);
-
-$('#closeMusic').addEventListener(
-  'click',
-  closeMusic
-);
+$('#closeMusic').addEventListener('click', closeMusic);
 
 musicDialog.addEventListener('close', stopMusic);
+
+// READER EVENTS
 
 $('#closeReader').addEventListener(
   'click',
@@ -580,6 +575,8 @@ $('#nextTrack').addEventListener(
   () => goRelative(1)
 );
 
+// AGE CONFIRMATION EVENTS
+
 $('#cancelAge').addEventListener('click', () => {
   pendingChapter = null;
   ageDialog.close();
@@ -597,7 +594,7 @@ $('#confirmAge').addEventListener('click', () => {
   pendingChapter = null;
 });
 
-// ===== 初始化 =====
+// INITIALIZATION
 
 addSoundtrackStyles();
 
