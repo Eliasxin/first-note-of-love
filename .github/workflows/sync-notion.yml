@@ -63,9 +63,9 @@ jobs:
             throw new Error('Chapter data must be an array.');
           }
 
-          if (chapters.length !== 33) {
+          if (chapters.length !== 34) {
             throw new Error(
-              `Expected 33 chapters, got ${chapters.length}.`
+              `Expected 34 chapters, got ${chapters.length}.`
             );
           }
 
