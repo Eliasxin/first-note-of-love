@@ -1,19 +1,306 @@
+
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#79c5e3"><meta name="description" content="《戀習曲》— 彈一場完美戀愛二創短篇合集。每一段心動，都有自己的旋律。">
-  <title>戀習曲｜First Note of Love</title><link rel="stylesheet" href="./styles.css"><script defer src="./app.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#79c5e3">
+  <meta name="description" content="《戀習曲》— 彈一場完美戀愛二創短篇合集。每一段心動，都有自己的旋律。">
+  <title>戀習曲｜First Note of Love</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="./app.js"></script>
 </head>
 <body>
-  <header class="site-header"><a href="#home" class="brand">FIRST NOTE OF LOVE <span>♪</span></a><nav aria-label="主要導覽"><a href="#home">首頁</a><a href="#tracks">曲目列表</a><a href="#about">關於作品</a></nav><button class="header-music" id="openMusic" type="button" aria-label="開啟官方音樂播放器">♫ <span>OST</span></button></header>
+
+  <header class="site-header">
+    <a href="#home" class="brand">FIRST NOTE OF LOVE <span>♪</span></a>
+    <nav aria-label="主要導覽">
+      <a href="#home">首頁</a>
+      <a href="#series">原作介紹</a>
+      <a href="#tracks">曲目列表</a>
+      <a href="#about">關於作品</a>
+    </nav>
+    <button class="header-music" id="openMusic" type="button" aria-label="開啟官方音樂播放器">
+      ♫ <span>OST</span>
+    </button>
+  </header>
+
   <main>
-    <section class="hero" id="home"><div class="hero-cloud cloud-one"></div><div class="hero-cloud cloud-two"></div><div class="hero-inner"><div class="hero-copy"><p class="eyebrow">彈一場完美戀愛 · 二創短篇合集</p><h1>戀習曲</h1><p class="roman">First Note of Love</p><p class="hero-verse">有些心動，像旋律一樣。<br>在平凡的日子裡，反覆練習著。</p><div class="hero-actions"><a class="button primary" href="#tracks">進入曲目列表 <span aria-hidden="true">↗</span></a><button class="button ghost" id="heroMusic" type="button">♫ 聆聽官方原聲帶</button></div></div><div class="hero-art" aria-hidden="true"><div class="record-cover"><span>FIRST NOTE<br>OF LOVE</span><div class="record-lines">♪ &nbsp; ♫ &nbsp; ♪</div></div><div class="vinyl"><div class="vinyl-label">戀<br>習<br>曲</div></div><div class="polaroid"><div class="photo-sky"></div><span>music lives in us.</span></div><div class="headphones">♫</div></div></div><div class="hero-bottom"><span>01 / 34 · A COLLECTION OF LOVE STORIES</span><span>SCROLL TO DISCOVER ↓</span></div></section>
-    <section class="tracks-section" id="tracks"><div class="section-top"><div><p class="eyebrow dark">THE TRACKLIST / SHORT STORIES</p><h2>曲目列表 <span>Track List</span></h2><p class="section-desc">三十四段故事，三十四種心動。只有正式公開的篇章會出現在這裡。</p></div><div class="track-count"><strong>34</strong><span>STORIES IN THE COLLECTION</span></div></div><div class="filters" role="group" aria-label="篩選曲目"><button class="chip active" data-filter="all" aria-pressed="true">全部</button><button class="chip" data-filter="reese" aria-pressed="false">Reese × Orca</button><button class="chip" data-filter="neil" aria-pressed="false">Neil × 小海</button><button class="chip" data-filter="general" aria-pressed="false">一般</button><button class="chip" data-filter="adult" aria-pressed="false">18+</button></div><div id="trackList" class="track-list" aria-live="polite"><div class="empty-state">正在載入曲目…</div></div></section>
-    <section class="about-section" id="about"><div class="about-note">♪</div><div><p class="eyebrow dark">ABOUT THE COLLECTION</p><h2>每一段心動，<br>都有自己的旋律。</h2><p>《戀習曲》是以《彈一場完美戀愛》為靈感創作的非官方二創短篇合集。每篇故事獨立成章，如同一首可以反覆聆聽的歌。</p><p class="disclaimer">本站為非官方粉絲創作網站，與原作製作方及音樂權利人無隸屬或授權關係。音樂由第三方官方平台提供，本站不儲存原聲帶音檔。</p></div></section>
+
+    <!-- 首頁專輯封面 -->
+    <section class="hero" id="home">
+      <div class="hero-cloud cloud-one"></div>
+      <div class="hero-cloud cloud-two"></div>
+
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow">彈一場完美戀愛 · 二創短篇合集</p>
+          <h1>戀習曲</h1>
+          <p class="roman">First Note of Love</p>
+          <p class="hero-verse">
+            有些心動，像旋律一樣。<br>
+            在平凡的日子裡，反覆練習著。
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#tracks">
+              進入曲目列表 <span aria-hidden="true">↗</span>
+            </a>
+            <button class="button ghost" id="heroMusic" type="button">
+              ♫ 聆聽官方原聲帶
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-art" aria-hidden="true">
+          <div class="record-cover">
+            <span>FIRST NOTE<br>OF LOVE</span>
+            <div class="record-lines">♪ &nbsp; ♫ &nbsp; ♪</div>
+          </div>
+          <div class="vinyl">
+            <div class="vinyl-label">戀<br>習<br>曲</div>
+          </div>
+          <div class="polaroid">
+            <div class="photo-sky"></div>
+            <span>music lives in us.</span>
+          </div>
+          <div class="headphones">♫</div>
+        </div>
+      </div>
+
+      <div class="hero-bottom">
+        <span>01 / 34 · A COLLECTION OF LOVE STORIES</span>
+        <span>SCROLL TO DISCOVER ↓</span>
+      </div>
+    </section>
+
+    <!-- 原作影集介紹：直接顯示於首頁 -->
+    <section class="series-section" id="series" aria-labelledby="seriesHeading">
+      <div class="series-container">
+
+        <div class="series-intro">
+          <p class="eyebrow dark">
+            THE ORIGINAL SERIES / CAST &amp; CREW
+          </p>
+          <h2 id="seriesHeading">
+            彈一場完美戀愛
+            <span>First Note of Love</span>
+          </h2>
+          <p class="series-lead">
+            在失去與重逢之間，讓音樂成為重新愛人的勇氣。
+          </p>
+
+          <div class="series-facts" aria-label="影集基本資訊">
+            <span>2024 · 台灣原創影集</span>
+            <span>BL · 愛情 · 音樂</span>
+            <span>全 12 集</span>
+          </div>
+        </div>
+
+        <div class="series-story">
+          <div class="series-disc" aria-hidden="true">
+            <span>♪</span>
+          </div>
+          <div>
+            <h3>故事簡介 <em>Story</em></h3>
+            <p>
+              人氣樂團 Magnet 的鍵盤手 Matt 意外離世，
+              身為主唱、也是 Matt 親哥哥的 Neil 深受打擊，
+              決定退出樂壇。多年後，天才音樂人小海走進他的生命。
+              兩人從碰撞、磨合到相互理解，在音樂與愛之中逐漸療癒彼此，
+              重新尋回前進的方向。
+            </p>
+          </div>
+        </div>
+
+        <div class="series-subhead">
+          <p class="eyebrow dark">THE CAST / FOUR HEARTBEATS</p>
+          <h3>主要演員 <em>Cast</em></h3>
+        </div>
+
+        <div class="cast-grid">
+
+          <article class="cast-card">
+            <span class="cast-index">01 / NEIL</span>
+            <h4>涂善存</h4>
+            <p class="cast-role">飾演 Neil</p>
+            <p>
+              Magnet 樂團前主唱，在失去親人後離開舞台，
+              與小海相遇後重新面對音樂與自己。
+            </p>
+          </article>
+
+          <article class="cast-card">
+            <span class="cast-index">02 / XIAO HAI</span>
+            <h4>張豐豪</h4>
+            <p class="cast-role">飾演 小海</p>
+            <p>
+              富有才華的音樂製作人與作曲人，
+              以音樂逐漸走進 Neil 的世界。
+            </p>
+          </article>
+
+          <article class="cast-card">
+            <span class="cast-index">03 / REESE</span>
+            <h4>劉泯廷</h4>
+            <p class="cast-role">飾演 Reese</p>
+            <p>
+              影集主要角色，也是《戀習曲》
+              二創篇章中的重要人物。
+            </p>
+          </article>
+
+          <article class="cast-card">
+            <span class="cast-index">04 / ORCA</span>
+            <h4>Jame Kasama</h4>
+            <p class="cast-role">飾演 Orca</p>
+            <p>
+              影集主要角色，與 Reese 的故事
+              同樣延伸出不同的心動旋律。
+            </p>
+          </article>
+
+        </div>
+
+        <div class="series-credits">
+          <div>
+            <p class="eyebrow dark">BEHIND THE SCENES</p>
+            <h3>幕後與播出資訊 <em>Credits</em></h3>
+          </div>
+
+          <div class="credits-detail">
+            <p>
+              <strong>導演</strong>
+              <span>練建宏</span>
+            </p>
+            <p>
+              <strong>首播平台</strong>
+              <span>
+                GagaOOLala、LINE TV、friDay 影音、
+                GTV 劇樂部等
+              </span>
+            </p>
+            <p class="credits-note">
+              以上為原作影集介紹；本站為非官方粉絲二次創作，
+              並非原作製作或播出單位經營。
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 34 篇故事 -->
+    <section class="tracks-section" id="tracks">
+      <div class="section-top">
+        <div>
+          <p class="eyebrow dark">
+            THE TRACKLIST / SHORT STORIES
+          </p>
+          <h2>曲目列表 <span>Track List</span></h2>
+          <p class="section-desc">
+            三十四段故事，三十四種心動。
+            只有正式公開的篇章會出現在這裡。
+          </p>
+        </div>
+        <div class="track-count">
+          <strong>34</strong>
+          <span>STORIES IN THE COLLECTION</span>
+        </div>
+      </div>
+
+      <div class="filters" role="group" aria-label="篩選曲目">
+        <button class="chip active" data-filter="all" aria-pressed="true">全部</button>
+        <button class="chip" data-filter="reese" aria-pressed="false">Reese × Orca</button>
+        <button class="chip" data-filter="neil" aria-pressed="false">Neil × 小海</button>
+        <button class="chip" data-filter="general" aria-pressed="false">一般</button>
+        <button class="chip" data-filter="adult" aria-pressed="false">18+</button>
+      </div>
+
+      <div id="trackList" class="track-list" aria-live="polite">
+        <div class="empty-state">正在載入曲目…</div>
+      </div>
+    </section>
+
+    <!-- 關於二創 -->
+    <section class="about-section" id="about">
+      <div class="about-note">♪</div>
+      <div>
+        <p class="eyebrow dark">ABOUT THE COLLECTION</p>
+        <h2>每一段心動，<br>都有自己的旋律。</h2>
+        <p>
+          《戀習曲》是以《彈一場完美戀愛》為靈感創作的
+          非官方二創短篇合集。每篇故事獨立成章，
+          如同一首可以反覆聆聽的歌。
+        </p>
+        <p class="disclaimer">
+          本站為非官方粉絲創作網站，與原作製作方及音樂權利人
+          無隸屬或授權關係。音樂由第三方官方平台提供，
+          本站不儲存原聲帶音檔。
+        </p>
+      </div>
+    </section>
+
   </main>
-  <footer><span>戀習曲 · FIRST NOTE OF LOVE</span><span>Made for stories, music & love.</span></footer>
-  <dialog id="readerDialog" class="reader-dialog"><div class="reader-shell"><button class="close" id="closeReader" aria-label="關閉閱讀頁">×</button><p class="eyebrow dark" id="readerNumber"></p><h2 id="readerTitle"></h2><div id="readerMeta" class="reader-meta"></div><article id="readerBody" class="reader-body"></article><div class="reader-nav"><button id="prevTrack" type="button">← 上一首</button><button id="backToList" type="button">☷ 曲目列表</button><button id="nextTrack" type="button">下一首 →</button></div></div></dialog>
-  <dialog id="ageDialog" class="age-dialog"><div class="age-inner"><div class="age-icon">18+</div><h2>成人內容提醒</h2><p>這篇故事標記為 18+，可能包含不適合未成年讀者的內容。請確認你已年滿18歲，再繼續閱讀。</p><div class="age-actions"><button id="cancelAge" class="button light" type="button">返回列表</button><button id="confirmAge" class="button blue" type="button">我已年滿18歲</button></div></div></dialog>
-  <dialog id="musicDialog" class="music-dialog"><div class="music-shell"><button class="close" id="closeMusic" aria-label="關閉播放器">×</button><p class="eyebrow">OFFICIAL SOUNDTRACK</p><h2>彈一場完美戀愛</h2><p>點擊下方播放器，即可由官方 YouTube 影片播放音樂。音量與進度請使用影片內的控制功能。</p><div class="video-wrap" id="videoWrap"></div><p class="music-note">若影片無法嵌入播放，請<a href="https://www.youtube.com/watch?v=VdYIMjVJU90" target="_blank" rel="noopener noreferrer">前往 YouTube 開啟〈我愛，我在〉</a>。本站不會自動播放音樂。</p></div></dialog>
-</body></html>
+
+  <footer>
+    <span>戀習曲 · FIRST NOTE OF LOVE</span>
+    <span>Made for stories, music &amp; love.</span>
+  </footer>
+
+  <!-- 文章閱讀視窗 -->
+  <dialog id="readerDialog" class="reader-dialog">
+    <div class="reader-shell">
+      <button class="close" id="closeReader" aria-label="關閉閱讀頁">×</button>
+      <p class="eyebrow dark" id="readerNumber"></p>
+      <h2 id="readerTitle"></h2>
+      <div id="readerMeta" class="reader-meta"></div>
+      <article id="readerBody" class="reader-body"></article>
+      <div class="reader-nav">
+        <button id="prevTrack" type="button">← 上一首</button>
+        <button id="backToList" type="button">☷ 曲目列表</button>
+        <button id="nextTrack" type="button">下一首 →</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 18+ 閱讀提醒 -->
+  <dialog id="ageDialog" class="age-dialog">
+    <div class="age-inner">
+      <div class="age-icon">18+</div>
+      <h2>成人內容提醒</h2>
+      <p>
+        這篇故事標記為 18+，可能包含不適合未成年讀者的內容。
+        請確認你已年滿18歲，再繼續閱讀。
+      </p>
+      <div class="age-actions">
+        <button id="cancelAge" class="button light" type="button">
+          返回列表
+        </button>
+        <button id="confirmAge" class="button blue" type="button">
+          我已年滿18歲
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 8 首官方原聲帶 -->
+  <dialog id="musicDialog" class="music-dialog">
+    <div class="music-shell">
+      <button class="close" id="closeMusic" aria-label="關閉播放器">×</button>
+      <p class="eyebrow">OFFICIAL SOUNDTRACK</p>
+      <h2>彈一場完美戀愛</h2>
+      <p>
+        選擇下方曲目，即可播放對應的 YouTube 影片。
+        音量與進度請使用影片內的控制功能。
+      </p>
+      <div class="video-wrap" id="videoWrap"></div>
+      <p class="music-note">
+        若影片無法嵌入播放，請使用播放器中的
+        「在 YouTube 開啟這首歌」。
+        本站不會自動播放音樂。
+      </p>
+    </div>
+  </dialog>
+
+</body>
+</html>
